@@ -41,7 +41,6 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
                 }
                 String token = authorizationHeader.substring(7);
                 try {
-                    System.out.println(token);
                     jwtUtils.validateToken(token);
                 } catch (Exception e) {
                     throw new RuntimeException("Unauthorized access to the application");

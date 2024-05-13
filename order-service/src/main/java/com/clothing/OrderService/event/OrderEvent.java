@@ -1,22 +1,20 @@
 package com.clothing.OrderService.event;
 
-import com.clothing.OrderService.dto.response.ProductEventResponse;
+import com.clothing.OrderService.dto.response.event.OrderEventResponse;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
-
-import java.util.List;
-
 @Getter
 @Setter
 public class OrderEvent extends ApplicationEvent {
-    private List<ProductEventResponse> productList;
-    public OrderEvent(Object source, List<ProductEventResponse> productList) {
+    private OrderEventResponse order;
+
+    public OrderEvent(Object source, OrderEventResponse order) {
         super(source);
-        this.productList = productList;
+        this.order = order;
     }
-    public OrderEvent(List<ProductEventResponse> productList) {
+    public OrderEvent(OrderEventResponse order) {
         super(null);
-        this.productList = productList;
+        this.order = order;
     }
 }

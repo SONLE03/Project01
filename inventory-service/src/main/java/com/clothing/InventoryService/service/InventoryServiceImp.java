@@ -43,7 +43,7 @@ public class InventoryServiceImp implements InventoryService{
 
     @Override
     @Transactional
-    public void createImportInvoice(List<ImportInvoiceRequest> importInvoiceRequests) {
+    public String createImportInvoice(List<ImportInvoiceRequest> importInvoiceRequests) {
         List<ProductResponse> productList = productService.getAllProducts();
         Set<UUID> productSet = new HashSet<>();
         for (ProductResponse product : productList) {
@@ -83,6 +83,6 @@ public class InventoryServiceImp implements InventoryService{
         importItemRepository.saveAll(importItems);
 
         applicationEventPublisher.publishEvent(new InventoryImportEvent(this, importEventResponseList));
-
+        return  "Import invoice was created successfully";
     }
 }

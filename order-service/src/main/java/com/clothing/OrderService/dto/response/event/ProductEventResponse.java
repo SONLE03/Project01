@@ -1,4 +1,4 @@
-package com.clothing.OrderService.dto.response;
+package com.clothing.OrderService.dto.response.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

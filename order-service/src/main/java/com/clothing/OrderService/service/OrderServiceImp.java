@@ -4,10 +4,12 @@ import com.clothing.OrderService.constant.APIStatus;
 import com.clothing.OrderService.dto.request.OrderItemRequest;
 import com.clothing.OrderService.dto.request.OrderRequest;
 import com.clothing.OrderService.dto.response.CustomerResponse;
-import com.clothing.OrderService.dto.response.OrderResponse;
-import com.clothing.OrderService.dto.response.ProductEventResponse;
+import com.clothing.OrderService.dto.response.OrderItemResponse;
+import com.clothing.OrderService.dto.response.event.OrderEventResponse;
+import com.clothing.OrderService.dto.response.event.ProductEventResponse;
 import com.clothing.OrderService.dto.response.ProductResponse;
 import com.clothing.OrderService.event.OrderEvent;
+import com.clothing.OrderService.event.ProductEvent;
 import com.clothing.OrderService.exception.BusinessException;
 import com.clothing.OrderService.model.Order;
 import com.clothing.OrderService.model.OrderItem;
@@ -35,13 +37,15 @@ public class OrderServiceImp implements OrderService{
     private final OrderItemRepository orderItemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     @Override
-    public List<OrderResponse> getAllOrders() {
-        return null;
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 
     @Override
     public Order getOrder(UUID orderId) {
-        return null;
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                () -> new BusinessException(APIStatus.ORDER_NOT_FOUND));
+        return order;
     }
     @Transactional
     @Override
@@ -54,7 +58,7 @@ public class OrderServiceImp implements OrderService{
 
         Order order = new Order();
         order.setNote(orderRequest.getNote());
-        order.setOrderStatus(OrderStatus.PENDING);
+        order.setOrderStatus(OrderStatus.COMPLETED);
         order.setCustomer(customerId);
         orderRepository.save(order);
 
@@ -63,6 +67,9 @@ public class OrderServiceImp implements OrderService{
         List<OrderItemRequest> orderItemRequestList = orderRequest.getOrderItemRequestList();
         List<OrderItem> orderItems = new ArrayList<>();
         List<ProductEventResponse> productListEvent = new ArrayList<>();
+
+        List<OrderItemResponse> orderItemResponses = new ArrayList<>();
+
         for(OrderItemRequest item : orderItemRequestList){
             UUID productId = item.getProductId();
             ProductResponse productResponse = productService.getDetailProduct(productId);
@@ -92,6 +99,8 @@ public class OrderServiceImp implements OrderService{
                     .total(total)
                     .build();
 
+            orderItemResponses.add(new OrderItemResponse(productId, productResponse.getProduct_Name(), quantity, price, total));
+
             orderItems.add(orderItem);
             productListEvent.add(new ProductEventResponse(productId, quantity * -1));
         }
@@ -102,8 +111,9 @@ public class OrderServiceImp implements OrderService{
         order.setUpdatedAt(time);
         orderItemRepository.saveAll(orderItems);
 
-        applicationEventPublisher.publishEvent(new OrderEvent(this, productListEvent));
-
+        OrderEventResponse orderEventResponse = new OrderEventResponse(order.getId(), orderItemResponses, customerResponse, order.getUpdatedAt(), _total);
+        applicationEventPublisher.publishEvent(new ProductEvent(this, productListEvent));
+        applicationEventPublisher.publishEvent(new OrderEvent(this, orderEventResponse));
         return "Order was created successfully";
     }
 

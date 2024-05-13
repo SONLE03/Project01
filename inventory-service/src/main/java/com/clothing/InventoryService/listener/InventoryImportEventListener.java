@@ -36,7 +36,7 @@ public class InventoryImportEventListener {
             String json = jsonNode.toString();
             System.out.println(json);
             Observation.createNotStarted("notification-topic", this.observationRegistry).observeChecked(() -> {
-                CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send("notificationTopic", json);
+                CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send("productTopic", json);
                 return future.handle((result, throwable) -> CompletableFuture.completedFuture(result));
             }).get();
         }catch (InterruptedException | ExecutionException e){

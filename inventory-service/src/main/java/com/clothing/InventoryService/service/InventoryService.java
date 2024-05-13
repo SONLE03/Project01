@@ -11,5 +11,5 @@ public interface InventoryService {
     List<ImportInvoiceResponse> getImports();
 
     ImportInvoice getImportById(UUID importId);
-    void createImportInvoice(List<ImportInvoiceRequest> importInvoiceRequests);
+    String createImportInvoice(List<ImportInvoiceRequest> importInvoiceRequests);
 }
