@@ -1,7 +1,9 @@
 package com.clothing.MailService.listener;
 
 import com.clothing.MailService.dto.response.OrderEventResponse;
+import com.clothing.MailService.dto.response.SendOtpResponse;
 import com.clothing.MailService.event.OrderEvent;
+import com.clothing.MailService.event.SendOtpEvent;
 import com.clothing.MailService.service.MailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
@@ -10,13 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.UUID;
-
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class OrderEventListener {
+public class EventListener {
     private final ObservationRegistry observationRegistry;
     private final MailService mailService;
     @KafkaListener(topics = "orderTopic")
@@ -31,5 +30,16 @@ public class OrderEventListener {
             e.printStackTrace();
         }
     }
-
+    @KafkaListener(topics = "otpTopic")
+    public void handleSendOtp(String jsonOtp) {
+        try {
+            System.out.println(jsonOtp);
+            ObjectMapper objectMapper = new ObjectMapper();
+            SendOtpEvent sendOtpEvent = objectMapper.readValue(jsonOtp, SendOtpEvent.class);
+            SendOtpResponse sendOtp = sendOtpEvent.getEmail();
+            mailService.sendOtp(sendOtp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

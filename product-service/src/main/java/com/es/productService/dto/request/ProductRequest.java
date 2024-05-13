@@ -1,6 +1,7 @@
 package com.es.productService.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,24 +14,15 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductRequest {
-
-    @JsonProperty("name")
+    @NotNull(message = "Product name can not be null")
     private String product_Name;
-
-    @JsonProperty("category")
+    @NotNull(message = "Category can not be null")
     private Integer category;
-
-    @JsonProperty("description")
     private String description;
-
-    @JsonProperty("image")
     private String image;
-
-    @JsonProperty("price")
+    @NotNull(message = "Product price can not be null")
     private BigDecimal price;
-    @JsonProperty("quantity")
+    @NotNull(message = "Product quantity can not be null")
     private Integer quantity;
-
-    @JsonProperty("status")
     private Integer status;
 }

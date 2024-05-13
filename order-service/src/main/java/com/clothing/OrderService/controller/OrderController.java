@@ -36,22 +36,23 @@ public class OrderController {
     public Order getOrder(@PathVariable UUID orderId){
         return  orderService.getOrder(orderId);
     }
-//    @PostMapping()
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
-//    @TimeLimiter(name = "order-service")
-//    @Retry(name = "order-service")
-//    public CompletableFuture<String> createOrder(@RequestBody @Valid OrderRequest orderRequest) {
-//        log.info("Create Order");
-//        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest));
-//    }
-//    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest, RuntimeException runtimeException) {
-//        log.info("Cannot Create Order Executing Fallback logic");
-//        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
-//    }
+
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public String createOrder(@RequestBody @Valid OrderRequest orderRequest){
-        return orderService.createOrder(orderRequest);
+    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
+    @TimeLimiter(name = "order-service")
+    @Retry(name = "order-service")
+    public CompletableFuture<String> createOrder(@RequestBody @Valid OrderRequest orderRequest) {
+        log.info("Create Order");
+        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest));
     }
+    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest, RuntimeException runtimeException) {
+        log.info("Cannot Create Order Executing Fallback logic");
+        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
+    }
+//    @PostMapping()
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public String createOrder(@RequestBody @Valid OrderRequest orderRequest){
+//        return orderService.createOrder(orderRequest);
+//    }
 }

@@ -1,4 +1,4 @@
-package com.clothing.authservice.dto;
+package com.clothing.authservice.dto.request;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

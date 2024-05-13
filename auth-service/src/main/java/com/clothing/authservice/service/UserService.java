@@ -1,10 +1,8 @@
 package com.clothing.authservice.service;
 
 import com.clothing.authservice.client.UserFeignClient;
-import com.clothing.authservice.dto.UserRequest;
+import com.clothing.authservice.dto.request.UserRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;

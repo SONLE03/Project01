@@ -1,4 +1,4 @@
-package com.clothing.authservice.dto;
+package com.clothing.authservice.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

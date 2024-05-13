@@ -1,6 +1,7 @@
 package com.clothing.MailService.service;
 
 import com.clothing.MailService.dto.response.OrderEventResponse;
+import com.clothing.MailService.dto.response.SendOtpResponse;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -34,5 +35,14 @@ public class MailServiceImp implements MailService{
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendOtp(SendOtpResponse sendOtpResponse) {
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setTo(sendOtpResponse.getTo());
+        simpleMailMessage.setSubject(sendOtpResponse.getSubject());
+        simpleMailMessage.setText(sendOtpResponse.getText());
+        javaMailSender.send(simpleMailMessage);
     }
 }

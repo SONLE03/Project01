@@ -5,6 +5,7 @@ import com.es.productService.dto.request.ProductRequest;
 import com.es.productService.dto.response.ProductResponse;
 import com.es.productService.service.ProductService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +31,12 @@ public class ProductController {
     }
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductResponse createProduct(@RequestBody ProductRequest request) {
+    public ProductResponse createProduct(@RequestBody @Valid ProductRequest request) {
         return productService.createProduct(request);
     }
     @PutMapping(APIConstant.PRODUCT)
     @ResponseStatus(HttpStatus.OK)
-    public ProductResponse updateProduct(@PathVariable UUID productId,@RequestBody ProductRequest request){
+    public ProductResponse updateProduct(@PathVariable UUID productId,@RequestBody @Valid ProductRequest request){
         return productService.updateProduct(productId, request);
     }
 }
