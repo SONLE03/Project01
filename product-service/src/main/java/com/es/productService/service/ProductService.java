@@ -1,7 +1,7 @@
 package com.es.productService.service;
 
 import com.es.productService.dto.request.ProductRequest;
-import com.es.productService.dto.response.ImportEventResponse;
+import com.es.productService.dto.response.ProductEventResponse;
 import com.es.productService.dto.response.ProductResponse;
 
 import java.util.List;
@@ -17,5 +17,5 @@ public interface ProductService {
     ProductResponse updateProduct(UUID productId, ProductRequest request);
 
     ProductResponse getDetailProduct(UUID productId);
-    void importProduct(List<ImportEventResponse> importEventResponseList);
+    void updateQuantity(List<ProductEventResponse> productList);
 }

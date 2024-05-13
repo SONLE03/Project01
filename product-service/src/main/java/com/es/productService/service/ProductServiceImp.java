@@ -2,7 +2,7 @@ package com.es.productService.service;
 
 import com.es.productService.constant.APIStatus;
 import com.es.productService.dto.request.ProductRequest;
-import com.es.productService.dto.response.ImportEventResponse;
+import com.es.productService.dto.response.ProductEventResponse;
 import com.es.productService.dto.response.ProductResponse;
 import com.es.productService.exception.BusinessException;
 import com.es.productService.model.CategoryEntity;
@@ -15,10 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -106,14 +104,14 @@ public class ProductServiceImp implements ProductService{
     }
     @Override
     @Transactional
-    public void importProduct(List<ImportEventResponse> ImportEventResponse){
+    public void updateQuantity(List<ProductEventResponse> productList){
         List<ProductEntity> productsToUpdate = new ArrayList<>();
 
-        for (ImportEventResponse importProduct : ImportEventResponse) {
-            ProductEntity product = productRepository.findById(importProduct.getProductId())
+        for (ProductEventResponse item : productList) {
+            ProductEntity product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
 
-            product.setQuantity(importProduct.getQuantity());
+            product.setQuantity(product.getQuantity() + item.getQuantity());
             productsToUpdate.add(product);
         }
 

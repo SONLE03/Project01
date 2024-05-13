@@ -34,6 +34,12 @@ spring:
             - Path=/inventory-service/**
           filters:
             - AuthFilter
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/order-service/**
+          filters:
+            - AuthFilter
 
 
 #      discovery:

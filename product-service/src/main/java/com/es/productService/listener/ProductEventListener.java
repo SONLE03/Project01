@@ -1,13 +1,12 @@
 package com.es.productService.listener;
 
-import com.es.productService.dto.response.ImportEventResponse;
-import com.es.productService.event.InventoryImportEvent;
+import com.es.productService.dto.response.ProductEventResponse;
+import com.es.productService.event.ProductEvent;
 import com.es.productService.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class ImportInvoiceEvent {
+public class ProductEventListener {
     private final ObservationRegistry observationRegistry;
     private final ProductService productService;
 
@@ -25,9 +24,9 @@ public class ImportInvoiceEvent {
         try {
             System.out.println(json);
             ObjectMapper objectMapper = new ObjectMapper();
-            InventoryImportEvent inventoryImportEvent = objectMapper.readValue(json, InventoryImportEvent.class);
-            List<ImportEventResponse> importEventResponseList = inventoryImportEvent.getImportEventResponseList();
-            productService.importProduct(importEventResponseList);
+            ProductEvent productEvent = objectMapper.readValue(json, ProductEvent.class);
+            List<ProductEventResponse> productList = productEvent.getProductList();
+            productService.updateQuantity(productList);
         } catch (Exception e) {
             e.printStackTrace();
         }

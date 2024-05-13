@@ -2,7 +2,7 @@ package com.clothing.InventoryService.service;
 
 import com.clothing.InventoryService.constant.APIStatus;
 import com.clothing.InventoryService.dto.request.ImportInvoiceRequest;
-import com.clothing.InventoryService.dto.response.ImportEventResponse;
+import com.clothing.InventoryService.dto.response.ProductEventResponse;
 import com.clothing.InventoryService.dto.response.ImportInvoiceResponse;
 import com.clothing.InventoryService.dto.response.ProductResponse;
 import com.clothing.InventoryService.event.InventoryImportEvent;
@@ -53,7 +53,7 @@ public class InventoryServiceImp implements InventoryService{
         importInvoice = importInvoiceRepository.save(importInvoice);
         BigDecimal total = BigDecimal.ZERO;
         List<ImportItem> importItems = new ArrayList<>();
-        List<ImportEventResponse> importEventResponseList = new ArrayList<>();
+        List<ProductEventResponse> importEventResponseList = new ArrayList<>();
         for (ImportInvoiceRequest importInvoiceRequest : importInvoiceRequests) {
             if (!productSet.contains(importInvoiceRequest.getProductId())) {
                 throw new BusinessException(APIStatus.PRODUCT_NOT_FOUND);
@@ -72,7 +72,7 @@ public class InventoryServiceImp implements InventoryService{
             importItem.setTotal(importInvoiceRequest.getTotal());
             importItems.add(importItem);
 
-            importEventResponseList.add(new ImportEventResponse(importInvoiceRequest.getProductId(), quantity));
+            importEventResponseList.add(new ProductEventResponse(importInvoiceRequest.getProductId(), quantity));
             // update quantity in product
         }
         Date currentDate = new Date();

@@ -1,4 +1,4 @@
-package com.es.productService.dto.response;
+package com.clothing.OrderService.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ImportEventResponse {
+public class ProductEventResponse {
     private UUID productId;
     private Integer quantity;
 }
-

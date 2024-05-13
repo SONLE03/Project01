@@ -31,6 +31,5 @@ public class NotificationKafkaListener {
         }catch (Exception e){
             e.printStackTrace();
         }
-
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(APIConstant.API)
+@RequestMapping("/product-service/api")
 @AllArgsConstructor
 public class ProductController {
     private final ProductService productService;
@@ -23,7 +23,7 @@ public class ProductController {
     public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();
     }
-    @GetMapping(APIConstant.PRODUCT)
+    @GetMapping("/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public ProductResponse getDetailProduct(@PathVariable UUID productId) {
         return productService.getDetailProduct(productId);
