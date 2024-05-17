@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient("customer-service")
+@FeignClient(name = "customer-service", url = "${customer-service.url}")
 public interface CustomerFeignClient {
     @RequestMapping(value = "customer-service/api/customers/{customerId}", method = RequestMethod.GET)
     CustomerResponse getCustomer(@PathVariable UUID customerId);

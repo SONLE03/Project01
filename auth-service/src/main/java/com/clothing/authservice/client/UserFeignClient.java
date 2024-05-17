@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.UUID;
 
-@FeignClient("user-service")
+@FeignClient(name = "user-service", url = "${user-service.url}")
 public interface UserFeignClient {
     @RequestMapping(value = "user-service/api/users", method = RequestMethod.POST)
     UUID createUser(@RequestBody UserRequest userRequest);

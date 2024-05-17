@@ -9,6 +9,13 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - electronic-network
+    healthcheck:
+      test: [ "CMD", "echo", "ruok", "|", "nc", "localhost", "2181" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   broker:
     image: confluentinc/cp-kafka:7.0.1
@@ -16,7 +23,8 @@ services:
     ports:
       - "9092:9092"
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
@@ -25,3 +33,311 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_MESSAGE_MAX_BYTES: 200000000 # 200MB
+      KAFKA_REPLICA_FETCH_MAX_BYTES: 200000000 # 200MB
+    networks:
+      - electronic-network
+
+## MySQL Docker Compose Config
+  ## Auth service MySQL Docker Compose Config
+  auth-service-mysql:
+    image: mysql:8.0.35
+    container_name: auth-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: auth_service
+      MYSQL_USER: auth_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: auth-service-mysql
+    restart: unless-stopped
+    volumes:
+      - auth-service-mysql-data:/var/lib/mysql
+      - ./auth-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "curl" ,"-f", "http://auth-service-mysql:3306" ]
+      interval: 1s
+      retries: 3
+      start_period: 25s
+    networks:
+      - electronic-network
+  ## Customer service MySQL Docker Compose Config
+  customer-service-mysql:
+    image: mysql:8.0.35
+    container_name: customer-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: customer_service
+      MYSQL_USER: customer_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: customer-service-mysql
+    restart: unless-stopped
+    volumes:
+      - customer-service-mysql-data:/var/lib/mysql
+      - ./customer-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "customer-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+  inventory-service-mysql:
+    image: mysql:8.0.35
+    container_name: inventory-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: inventory_service
+      MYSQL_USER: inventory_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: inventory-service-mysql
+    restart: unless-stopped
+    volumes:
+      - inventory-service-mysql-data:/var/lib/mysql
+      - ./inventory-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "inventory-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+  order-service-mysql:
+    image: mysql:8.0.35
+    container_name: order-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: order_service
+      MYSQL_USER: order_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: order-service-mysql
+    restart: unless-stopped
+    volumes:
+      - order-service-mysql-data:/var/lib/mysql
+      - ./order-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "order-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+  user-service-mysql:
+    image: mysql:8.0.35
+    container_name: user-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: user_service
+      MYSQL_USER: user_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: user-service-mysql
+    restart: unless-stopped
+    volumes:
+      - user-service-mysql-data:/var/lib/mysql
+      - ./user-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "user-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+  product-service-mysql:
+    image: mysql:8.0.35
+    container_name: product-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: product_service
+      MYSQL_USER: product_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: product-service-mysql
+    restart: unless-stopped
+    volumes:
+      - product-service-mysql-data:/var/lib/mysql
+      - ./product-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "product-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+# Zipkin
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    hostname: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - electronic-network
+  eureka-server:
+    container_name: eureka-server
+    hostname: eureka-server
+    restart: unless-stopped
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://eureka-server:8761" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - electronic-network
+  gateway-service:
+    container_name: gateway-service
+    hostname: gateway-service
+    restart: unless-stopped
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    ports:
+      - "8762:8762"
+    expose:
+      - "8762"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=gateway-service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://gateway-service:8762" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - eureka-server
+    networks:
+      - electronic-network
+  auth-service:
+    container_name: auth-service
+    hostname: auth-service
+    restart: unless-stopped
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    depends_on:
+      - gateway-service
+      - eureka-server
+      - auth-service-mysql
+    ports:
+      - "9001:9001"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=auth-service
+    networks:
+      - electronic-network
+  user-service:
+    container_name: user-service
+    restart: unless-stopped
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - user-service-mysql
+    ports:
+      - "9002:9002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=user-service
+    networks:
+      - electronic-network
+  customer-service:
+    container_name: customer-service
+    restart: unless-stopped
+    build:
+      context: ./customer-service
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - customer-service-mysql
+    ports:
+      - "9003:9003"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=customer-service
+    networks:
+      - electronic-network
+  product-service:
+    container_name: product-service
+    restart: unless-stopped
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - product-service-mysql
+    ports:
+      - "9004:9004"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=product-service
+    networks:
+      - electronic-network
+  inventory-service:
+    container_name: inventory-service
+    restart: unless-stopped
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - inventory-service-mysql
+    ports:
+      - "9005:9005"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=inventory-service
+    networks:
+      - electronic-network
+  order-service:
+    container_name: order-service
+    restart: unless-stopped
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    depends_on:
+      - eureka-server
+      - order-service-mysql
+    ports:
+      - "9006:9006"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=order-service
+    networks:
+      - electronic-network
+  mail-service:
+    container_name: mail-service
+    hostname: mail-service
+    restart: unless-stopped
+    build:
+      context: ./mail-service
+      dockerfile: Dockerfile
+    depends_on:
+      - gateway-service
+      - eureka-server
+    ports:
+      - "9007:9007"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=mail-service
+    networks:
+      - electronic-network
+volumes:
+  auth-service-mysql-data:
+  customer-service-mysql-data:
+  inventory-service-mysql-data:
+  order-service-mysql-data:
+  user-service-mysql-data:
+  product-service-mysql-data:
+networks:
+  electronic-network:
+    driver: bridge

@@ -101,6 +101,7 @@ public class AuthService {
                 String username = userDetails.getUsername();
                 UUID userId = userRepository.findByEmail(username).orElseThrow(
                         () -> new ObjectNotFoundException("User not found")).getId();
+                System.out.println(userId);
                 jwtUtil.deleteByUserId(userId);
             }
         }
