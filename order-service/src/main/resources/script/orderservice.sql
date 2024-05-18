@@ -1,30 +1,30 @@
-CREATE TABLE IF NOT EXISTS `orders` (
-  `id` BINARY(16) NOT NULL,
-  `canceled_at` DATETIME(6) DEFAULT NULL,
-  `completed_at` DATETIME(6) DEFAULT NULL,
-  `customer` BINARY(16) DEFAULT NULL,
-  `note` VARCHAR(255) DEFAULT NULL,
-  `status` ENUM('PENDING', 'CANCELED', 'COMPLETED') DEFAULT NULL,
-  `payment_at` DATETIME(6) DEFAULT NULL,
-  `shipping_fee` DECIMAL(38,2) DEFAULT NULL,
-  `total` DECIMAL(38,2) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `order_item` (
-  `product_item_id` BINARY(16) NOT NULL,
-  `price` DECIMAL(38,2) DEFAULT NULL,
-  `quantity` INT DEFAULT NULL,
-  `total` DECIMAL(38,2) DEFAULT NULL,
-  `order_id` BINARY(16) NOT NULL,
-  PRIMARY KEY (`order_id`, `product_item_id`),
-  CONSTRAINT `FK_order_item_orders`
-    FOREIGN KEY (`order_id`)
-    REFERENCES `orders` (`id`)
-) ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
+--CREATE TABLE IF NOT EXISTS `orders` (
+--  `id` BINARY(16) NOT NULL,
+--  `canceled_at` DATETIME(6) DEFAULT NULL,
+--  `completed_at` DATETIME(6) DEFAULT NULL,
+--  `customer` BINARY(16) DEFAULT NULL,
+--  `note` VARCHAR(255) DEFAULT NULL,
+--  `status` ENUM('PENDING', 'CANCELED', 'COMPLETED') DEFAULT NULL,
+--  `payment_at` DATETIME(6) DEFAULT NULL,
+--  `shipping_fee` DECIMAL(38,2) DEFAULT NULL,
+--  `total` DECIMAL(38,2) DEFAULT NULL,
+--  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--  PRIMARY KEY (`id`)
+--) ENGINE=InnoDB
+--DEFAULT CHARSET=utf8mb4
+--COLLATE=utf8mb4_0900_ai_ci;
+--
+--CREATE TABLE IF NOT EXISTS `order_item` (
+--  `product_item_id` BINARY(16) NOT NULL,
+--  `price` DECIMAL(38,2) DEFAULT NULL,
+--  `quantity` INT DEFAULT NULL,
+--  `total` DECIMAL(38,2) DEFAULT NULL,
+--  `order_id` BINARY(16) NOT NULL,
+--  PRIMARY KEY (`order_id`, `product_item_id`),
+--  CONSTRAINT `FK_order_item_orders`
+--    FOREIGN KEY (`order_id`)
+--    REFERENCES `orders` (`id`)
+--) ENGINE=InnoDB
+--DEFAULT CHARSET=utf8mb4
+--COLLATE=utf8mb4_0900_ai_ci;

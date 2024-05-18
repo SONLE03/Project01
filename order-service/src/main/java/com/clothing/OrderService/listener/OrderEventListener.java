@@ -53,13 +53,38 @@ public class OrderEventListener {
             String jsonOrder = jsonNode.toString();
 
             System.out.println(jsonOrder);
-            Observation.createNotStarted("notification-topic", this.observationRegistry).observeChecked(() -> {
-                CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send("orderTopic", jsonOrder);
-                return future.handle((result, throwable) -> CompletableFuture.completedFuture(result));
-            }).get();
+
+            sendToKafka("orderTopic", jsonOrder);
+            sendToKafka("warrantyTopic", jsonOrder);
+
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Error while sending message to Kafka", e);
         }
     }
+
+    private void sendToKafka(String topic, String message) throws InterruptedException, ExecutionException {
+        Observation.createNotStarted("notification-topic", this.observationRegistry).observeChecked(() -> {
+            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, message);
+            return future.handle((result, throwable) -> CompletableFuture.completedFuture(result));
+        }).get();
+    }
+//    @EventListener
+//    public void handleOrderEventToWarranty(OrderEvent orderEventResponse, String topic) {
+//        try {
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            JsonNode jsonNode = objectMapper.valueToTree(orderEventResponse);
+//            ((ObjectNode) jsonNode).remove("timestamp");
+//            String jsonOrder = jsonNode.toString();
+//
+//            System.out.println(jsonOrder);
+//            Observation.createNotStarted("notification-topic", this.observationRegistry).observeChecked(() -> {
+//                CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, jsonOrder);
+//                return future.handle((result, throwable) -> CompletableFuture.completedFuture(result));
+//            }).get();
+//        } catch (InterruptedException | ExecutionException e) {
+//            Thread.currentThread().interrupt();
+//            throw new RuntimeException("Error while sending message to Kafka", e);
+//        }
+//    }
 }

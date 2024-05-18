@@ -1,32 +1,32 @@
-CREATE TABLE IF NOT EXISTS `user` (
-  `id` BINARY(16) NOT NULL,
-  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  `date_of_birth` DATETIME(6) NULL DEFAULT NULL,
-  `email` VARCHAR(255) DEFAULT NULL,
-  `fullname` VARCHAR(255) DEFAULT NULL,
-  `password` VARCHAR(255) DEFAULT NULL,
-  `phone` VARCHAR(255) DEFAULT NULL,
-  `role` INT DEFAULT NULL,
-  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `admin` (
-  `id` BINARY(16) NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `FK_admin_user_id`
-    FOREIGN KEY (`id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
-
-CREATE TABLE IF NOT EXISTS `staff` (
-  `id` BINARY(16) NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `FK_staff_user_id`
-    FOREIGN KEY (`id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_0900_ai_ci;
+--CREATE TABLE IF NOT EXISTS `user` (
+--  `id` BINARY(16) NOT NULL,
+--  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+--  `date_of_birth` DATETIME(6) NULL DEFAULT NULL,
+--  `email` VARCHAR(255) DEFAULT NULL,
+--  `fullname` VARCHAR(255) DEFAULT NULL,
+--  `password` VARCHAR(255) DEFAULT NULL,
+--  `phone` VARCHAR(255) DEFAULT NULL,
+--  `role` INT DEFAULT NULL,
+--  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+--  PRIMARY KEY (`id`)
+--) ENGINE=InnoDB
+--DEFAULT CHARSET=utf8mb4
+--COLLATE=utf8mb4_0900_ai_ci;
+--
+--CREATE TABLE IF NOT EXISTS `admin` (
+--  `id` BINARY(16) NOT NULL,
+--  PRIMARY KEY (`id`),
+--  CONSTRAINT `FK_admin_user_id`
+--    FOREIGN KEY (`id`) REFERENCES `user` (`id`)
+--) ENGINE=InnoDB
+--DEFAULT CHARSET=utf8mb4
+--COLLATE=utf8mb4_0900_ai_ci;
+--
+--CREATE TABLE IF NOT EXISTS `staff` (
+--  `id` BINARY(16) NOT NULL,
+--  PRIMARY KEY (`id`),
+--  CONSTRAINT `FK_staff_user_id`
+--    FOREIGN KEY (`id`) REFERENCES `user` (`id`)
+--) ENGINE=InnoDB
+--DEFAULT CHARSET=utf8mb4
+--COLLATE=utf8mb4_0900_ai_ci;

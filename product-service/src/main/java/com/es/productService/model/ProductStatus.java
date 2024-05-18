@@ -6,9 +6,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum ProductStatus {
-    ACTIVE(1, "ACTIVE"),
-    INACTIVE(2,"STOP SELLING"),
-    DELETED(3, "DELETED");
-    private final Integer value;
-    private final String productStatus;
+    INACTIVE("STOP SELLING"),
+    ACTIVE("ACTIVE"),
+    DELETED("DELETED");
+    private final String status;
+    public static ProductStatus convertIntegerToProductStatus(int status) {
+        return switch (status) {
+            case 0 -> ProductStatus.INACTIVE;
+            case 1 -> ProductStatus.ACTIVE;
+            case 2 -> ProductStatus.DELETED;
+            default -> null;
+        };
+    }
 }

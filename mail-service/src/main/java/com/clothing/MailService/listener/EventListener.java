@@ -2,8 +2,10 @@ package com.clothing.MailService.listener;
 
 import com.clothing.MailService.dto.response.OrderEventResponse;
 import com.clothing.MailService.dto.response.SendOtpResponse;
+import com.clothing.MailService.dto.response.WarrantyInvoiceResponse;
 import com.clothing.MailService.event.OrderEvent;
 import com.clothing.MailService.event.SendOtpEvent;
+import com.clothing.MailService.event.WarrantyInvoiceEvent;
 import com.clothing.MailService.service.MailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.observation.ObservationRegistry;
@@ -38,6 +40,18 @@ public class EventListener {
             SendOtpEvent sendOtpEvent = objectMapper.readValue(jsonOtp, SendOtpEvent.class);
             SendOtpResponse sendOtp = sendOtpEvent.getEmail();
             mailService.sendOtp(sendOtp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @KafkaListener(topics = "warrantyInvoice")
+    public void handleWarrantyInvoice(String jsonWarrantyInvoice) {
+        try {
+            System.out.println(jsonWarrantyInvoice);
+            ObjectMapper objectMapper = new ObjectMapper();
+            WarrantyInvoiceEvent warrantyInvoiceEvent = objectMapper.readValue(jsonWarrantyInvoice, WarrantyInvoiceEvent.class);
+            WarrantyInvoiceResponse response = warrantyInvoiceEvent.getWarrantyInvoice();
+            mailService.sendWarrantyInvoice(response);
         } catch (Exception e) {
             e.printStackTrace();
         }

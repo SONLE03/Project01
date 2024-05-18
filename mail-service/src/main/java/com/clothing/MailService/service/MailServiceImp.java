@@ -2,6 +2,7 @@ package com.clothing.MailService.service;
 
 import com.clothing.MailService.dto.response.OrderEventResponse;
 import com.clothing.MailService.dto.response.SendOtpResponse;
+import com.clothing.MailService.dto.response.WarrantyInvoiceResponse;
 import jakarta.mail.internet.MimeMessage;
 import lombok.AllArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
@@ -44,5 +45,26 @@ public class MailServiceImp implements MailService{
         simpleMailMessage.setSubject(sendOtpResponse.getSubject());
         simpleMailMessage.setText(sendOtpResponse.getText());
         javaMailSender.send(simpleMailMessage);
+    }
+
+    @Override
+    public void sendWarrantyInvoice(WarrantyInvoiceResponse warrantyInvoiceResponse) {
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(warrantyInvoiceResponse.getCustomerEmail());
+            helper.setSubject("Hóa đơn bảo hành: " + warrantyInvoiceResponse.getWarrantyInvoiceId());
+
+            Context context = new Context();
+            context.setVariable("warrantyInvoiceResponse", warrantyInvoiceResponse);
+            String htmlContent = templateEngine.process("warrantyInvoiceTemplate", context);
+
+            helper.setText(htmlContent, true); // Đặt nội dung là HTML
+
+            javaMailSender.send(mimeMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

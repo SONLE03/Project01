@@ -7,7 +7,7 @@ import com.clothing.OrderService.dto.response.CustomerResponse;
 import com.clothing.OrderService.dto.response.OrderItemResponse;
 import com.clothing.OrderService.dto.response.event.OrderEventResponse;
 import com.clothing.OrderService.dto.response.event.ProductEventResponse;
-import com.clothing.OrderService.dto.response.ProductResponse;
+import com.clothing.OrderService.dto.response.ProductToOrder;
 import com.clothing.OrderService.event.OrderEvent;
 import com.clothing.OrderService.event.ProductEvent;
 import com.clothing.OrderService.exception.BusinessException;
@@ -72,7 +72,7 @@ public class OrderServiceImp implements OrderService{
 
         for(OrderItemRequest item : orderItemRequestList){
             UUID productId = item.getProductId();
-            ProductResponse productResponse = productService.getDetailProduct(productId);
+            ProductToOrder productResponse = productService.getProductToOrder(productId);
 
             Integer quantity = item.getQuantity();
 
@@ -99,7 +99,7 @@ public class OrderServiceImp implements OrderService{
                     .total(total)
                     .build();
 
-            orderItemResponses.add(new OrderItemResponse(productId, productResponse.getProduct_Name(), quantity, price, total));
+            orderItemResponses.add(new OrderItemResponse(productId, productResponse.getProduct_Name(), quantity, price, total, productResponse.getWarrantyPeriod()));
 
             orderItems.add(orderItem);
             productListEvent.add(new ProductEventResponse(productId, quantity * -1));

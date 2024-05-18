@@ -166,6 +166,48 @@ services:
       timeout: 10s
     networks:
       - electronic-network
+  category-service-mysql:
+    image: mysql:8.0.35
+    container_name: category-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: category_service
+      MYSQL_USER: category_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: category-service-mysql
+    restart: unless-stopped
+    volumes:
+      - category-service-mysql-data:/var/lib/mysql
+      - ./category-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "category-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
+  warranty-service-mysql:
+    image: mysql:8.0.35
+    container_name: warranty-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: warranty_service
+      MYSQL_USER: warranty_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: warranty-service-mysql
+    restart: unless-stopped
+    volumes:
+      - warranty-service-mysql-data:/var/lib/mysql
+      - ./warranty-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "warranty-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
 # Zipkin
   zipkin:
     image: openzipkin/zipkin
@@ -331,6 +373,63 @@ services:
       - SPRING_APPLICATION_NAME=mail-service
     networks:
       - electronic-network
+  category-service:
+    container_name: category-service
+    hostname: category-service
+    restart: unless-stopped
+    build:
+      context: ./category-service
+      dockerfile: Dockerfile
+    depends_on:
+      - gateway-service
+      - eureka-server
+    ports:
+      - "9008:9008"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=category-service
+    networks:
+      - electronic-network
+  warranty-service:
+    container_name: warranty-service
+    hostname: warranty-service
+    restart: unless-stopped
+    build:
+      context: ./warranty-service
+      dockerfile: Dockerfile
+    depends_on:
+      - gateway-service
+      - eureka-server
+    ports:
+      - "9009:9009"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=warranty-service
+    networks:
+      - electronic-network
+  ## Prometheus
+  prometheus:
+    image: prom/prometheus:v2.37.1
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  ## Grafana
+  grafana:
+    image: grafana/grafana-oss:8.5.2
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
 volumes:
   auth-service-mysql-data:
   customer-service-mysql-data:
@@ -338,6 +437,8 @@ volumes:
   order-service-mysql-data:
   user-service-mysql-data:
   product-service-mysql-data:
+  category-service-mysql-data:
+  warranty-service-mysql-data:
 networks:
   electronic-network:
     driver: bridge
