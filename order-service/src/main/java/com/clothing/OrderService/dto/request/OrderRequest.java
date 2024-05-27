@@ -11,6 +11,8 @@ import java.util.UUID;
 public class OrderRequest {
     @NotNull(message = "Customer name cannot be null")
     private UUID customerId;
+    @NotNull(message = "Payment method not null")
+    private Integer paymentMethod;
     private String note;
     @NotNull(message = "Order item cannot be null")
     private List<OrderItemRequest> orderItemRequestList;

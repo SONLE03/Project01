@@ -1,13 +1,13 @@
 package com.clothing.customerservice.dto.response;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CustomerResponse {
     private UUID customerId;
     private String fullName;

@@ -1,17 +1,24 @@
 package com.es.productService.service;
 
 import com.es.productService.constant.APIStatus;
+import com.es.productService.dto.SagaDTO;
 import com.es.productService.dto.request.ProductRequest;
 import com.es.productService.dto.response.*;
+import com.es.productService.event.RollBackOrderEvent;
+import com.es.productService.event.producer.SagaEvent;
 import com.es.productService.exception.BusinessException;
-import com.es.productService.model.Image;
-import com.es.productService.model.ProductEntity;
-import com.es.productService.model.ProductStatus;
+import com.es.productService.model.*;
 import com.es.productService.repository.ImageRepository;
+import com.es.productService.repository.ProductItemRepository;
 import com.es.productService.repository.ProductRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,20 +35,23 @@ import java.util.concurrent.Future;
 @RequiredArgsConstructor
 public class ProductServiceImp implements ProductService{
     private final ProductRepository productRepository;
-    private final ModelMapper modelMapper;
+    private final ProductItemRepository productItemRepository;
     private final CategoryService categoryService;
     private final CloudinaryService cloudinaryService;
     private final ImageRepository imageRepository;
+    private final AuthService authService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public List<ProductImageResponse> getAllProducts() {
-        List<ProductImageResponse> productImageResponses = new ArrayList<>();
+    public List<ProductResponse> getAllProducts() {
+//        List<ProductImageResponse> productImageResponses = new ArrayList<>();
         List<ProductResponse> productResponse = productRepository.findAllProducts();
-        for (ProductResponse product : productResponse){
-            List<ImageResponse> imageResponses = imageRepository.findImagesByProductId(product.getId());
-            productImageResponses.add(new ProductImageResponse(product, imageResponses));
-        }
-        return productImageResponses;
+        return productResponse;
+//        for (ProductResponse product : productResponse){
+//            List<ImageResponse> imageResponses = imageRepository.findImagesByProductId(product.getId());
+//            productImageResponses.add(new ProductImageResponse(product, imageResponses));
+//        }
+//        return productImageResponses;
     }
     @Override
     @Transactional
@@ -61,6 +71,15 @@ public class ProductServiceImp implements ProductService{
     }
 
     @Override
+    public List<UUID> getProductItem(UUID productId, Integer quantity) {
+        if(!productRepository.existsById(productId)){
+            throw new BusinessException(APIStatus.PRODUCT_NOT_FOUND);
+        }
+        List<UUID> inStockItems = productItemRepository.findAllByProductIdAndStatus(productId, ProductItemStatus.INSTOCK);
+        return inStockItems.subList(0, quantity);
+    }
+
+    @Override
     @Transactional
     public void createProduct(List<MultipartFile> multipartFiles, ProductRequest request) {
         CategoryResponse categoryResponse = categoryService.getCategory(request.getCategory());
@@ -72,8 +91,11 @@ public class ProductServiceImp implements ProductService{
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .quantity(request.getQuantity())
+                .soldQuantity(0)
                 .category(categoryResponse.getId())
+                .warrantyPeriod(request.getWarrantyPeriod())
                 .productStatus(ProductStatus.convertIntegerToProductStatus(request.getStatus()))
+                .createdBy(authService.getIdLogin())
                 .build();
         Date currentDate = new Date();
         Timestamp time = new Timestamp(currentDate.getTime());
@@ -183,21 +205,72 @@ public class ProductServiceImp implements ProductService{
         }
         executorService.shutdown();
     }
+
     @Override
     @Transactional
-    public void updateQuantity(List<ProductEventResponse> productList){
+    public void updateQuantityToImport(List<ProductEventResponse> productList){
         List<ProductEntity> productsToUpdate = new ArrayList<>();
-
+        List<ProductItem> productItemsToSave = new ArrayList<>();
         for (ProductEventResponse item : productList) {
             ProductEntity product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
-
             product.setQuantity(product.getQuantity() + item.getQuantity());
             productsToUpdate.add(product);
+            for (int i = 0; i < item.getQuantity(); i++) {
+                ProductItem productItem = new ProductItem();
+                productItem.setProduct(product);
+                productItem.setProductItemStatus(ProductItemStatus.INSTOCK);
+                productItemsToSave.add(productItem);
+            }
         }
 
         if (!productsToUpdate.isEmpty()) {
             productRepository.saveAll(productsToUpdate);
         }
+        if (!productItemsToSave.isEmpty()) {
+            productItemRepository.saveAll(productItemsToSave);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateQuantityToOrder(SagaDTO sagaDTO) { // <ProductId, List<ProductItemId>>
+        UUID orderId = sagaDTO.getOrderEventResponse().getOrderId();
+        try{
+            List<OrderItemResponse> orderItemResponses = sagaDTO.getOrderEventResponse().getOrderList();
+            List<ProductEntity> productsToUpdate = new ArrayList<>();
+            for (OrderItemResponse item : orderItemResponses){
+                ProductEntity product = productRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
+                List<UUID> productItemIdList = item.getProductItemList();
+                product.setSoldQuantity(product.getSoldQuantity() + productItemIdList.size());
+                productsToUpdate.add(product);
+                productItemRepository.updateProductItemStatus(ProductItemStatus.SOLD, productItemIdList, ProductItemStatus.INSTOCK);
+            }
+            productRepository.saveAll(productsToUpdate);
+            applicationEventPublisher.publishEvent(new SagaEvent(this, sagaDTO));
+        }catch (BusinessException exception) {
+            applicationEventPublisher.publishEvent(new RollBackOrderEvent(this, orderId));
+        } catch (Exception ex) {
+            applicationEventPublisher.publishEvent(new RollBackOrderEvent(this, orderId));
+        }
+
+    }
+
+    @Override
+    public void rollBackProduct(OrderEventResponse orderEventResponse) {
+        UUID orderId = orderEventResponse.getOrderId();
+        List<OrderItemResponse> orderItemResponses = orderEventResponse.getOrderList();
+        List<ProductEntity> productsToUpdate = new ArrayList<>();
+        for (OrderItemResponse item : orderItemResponses){
+            ProductEntity product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
+            List<UUID> productItemIdList = item.getProductItemList();
+            product.setSoldQuantity(product.getSoldQuantity() - productItemIdList.size());
+            productsToUpdate.add(product);
+            productItemRepository.updateProductItemStatus(ProductItemStatus.INSTOCK, productItemIdList, ProductItemStatus.SOLD);
+        }
+        productRepository.saveAll(productsToUpdate);
+        applicationEventPublisher.publishEvent(new RollBackOrderEvent(this, orderId));
     }
 }

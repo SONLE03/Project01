@@ -29,4 +29,6 @@ public class WarrantyInvoice {
 
     @Column(name = "price")
     private BigDecimal price;
+    @Column(name = "createdBy")
+    private UUID createdBy;
 }

@@ -21,17 +21,22 @@ import java.util.concurrent.CompletableFuture;
 public class InventoryController {
     private final InventoryService inventoryService;
 
+//    @PostMapping()
+//    @ResponseStatus(HttpStatus.CREATED)
+//    @CircuitBreaker(name = "inventory-service", fallbackMethod = "fallbackMethod")
+//    @TimeLimiter(name = "inventory-service")
+//    @Retry(name = "inventory-service")
+//    public CompletableFuture<String> createOrder(@RequestBody @Valid List<ImportInvoiceRequest> request) {
+//        log.info("Create Import Invoice");
+//        return CompletableFuture.supplyAsync(() -> inventoryService.createImportInvoice(request));
+//    }
+//    public CompletableFuture<String> fallbackMethod(List<ImportInvoiceRequest> request, RuntimeException runtimeException) {
+//        log.info("Cannot Create Import Invoice Executing Fallback logic");
+//        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create import invoice after some time!");
+//    }
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    @CircuitBreaker(name = "inventory-service", fallbackMethod = "fallbackMethod")
-    @TimeLimiter(name = "inventory-service")
-    @Retry(name = "inventory-service")
-    public CompletableFuture<String> createOrder(@RequestBody @Valid List<ImportInvoiceRequest> request) {
-        log.info("Create Import Invoice");
-        return CompletableFuture.supplyAsync(() -> inventoryService.createImportInvoice(request));
-    }
-    public CompletableFuture<String> fallbackMethod(List<ImportInvoiceRequest> request, RuntimeException runtimeException) {
-        log.info("Cannot Create Import Invoice Executing Fallback logic");
-        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create import invoice after some time!");
+    public String createImport(@RequestBody @Valid List<ImportInvoiceRequest> request){
+        return inventoryService.createImportInvoice(request);
     }
 }

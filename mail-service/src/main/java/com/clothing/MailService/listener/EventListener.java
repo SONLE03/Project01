@@ -21,7 +21,7 @@ public class EventListener {
     private final ObservationRegistry observationRegistry;
     private final MailService mailService;
     @KafkaListener(topics = "orderTopic")
-    public void handleProduct(String jsonOrder) {
+    public void handleOrderSuccess(String jsonOrder) {
         try {
             System.out.println(jsonOrder);
             ObjectMapper objectMapper = new ObjectMapper();

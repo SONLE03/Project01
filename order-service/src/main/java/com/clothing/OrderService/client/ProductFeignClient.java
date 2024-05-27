@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.List;
 import java.util.UUID;
 
 @FeignClient(name = "product-service", url = "${product-service.url}")
 public interface ProductFeignClient {
     @RequestMapping(value = "product-service/api/product/{productId}", method = RequestMethod.GET)
     ProductToOrder getProductToOrder(@PathVariable UUID productId);
+    @RequestMapping(value = "product-service/api/productItem/{productId}/{quantity}", method = RequestMethod.GET)
+    List<UUID> getProductItem(@PathVariable UUID productId, @PathVariable Integer quantity);
 }

@@ -12,11 +12,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/auth")
 public class AuthController {
     private final AuthService authService;
+
+    @GetMapping()
+    public UUID getIdLogin(){
+        return authService.getIdLogin();
+    }
     @PostMapping("/signin")
     public ResponseEntity<TokenResponse> signin(@RequestBody @Valid SigninRequest signinRequest){
         return ResponseEntity.ok(authService.authenticate(signinRequest));

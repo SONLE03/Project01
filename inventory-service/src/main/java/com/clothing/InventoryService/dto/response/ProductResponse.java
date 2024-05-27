@@ -24,6 +24,8 @@ public class ProductResponse {
     private Integer quantity;
     @JsonProperty("image")
     private String image;
+    @JsonProperty("warrantyPeriod")
+    private Integer warrantyPeriod;
     @JsonProperty("status")
-    private Integer status;
+    private String productStatus;
 }

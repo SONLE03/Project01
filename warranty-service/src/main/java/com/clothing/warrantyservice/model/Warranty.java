@@ -24,7 +24,7 @@ public class Warranty {
     @Column(name = "id", nullable = false)
     private UUID id;
     @Column(name = "productId", nullable = false)
-    private UUID productId;
+    private UUID productItemId;
     @Column(name = "customerId", nullable = false)
     private UUID customerId;
     @Column(name = "startDate", nullable = false)
@@ -38,4 +38,6 @@ public class Warranty {
     private Date createdAt;
     @Column(name = "updated_at")
     private Date updatedAt;
+    @Column(name = "createdBy")
+    private UUID createdBy;
 }

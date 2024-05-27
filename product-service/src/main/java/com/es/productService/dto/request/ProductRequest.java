@@ -24,5 +24,6 @@ public class ProductRequest {
     private BigDecimal price;
     @NotNull(message = "Product quantity can not be null")
     private Integer quantity;
+    private Integer warrantyPeriod;
     private Integer status;
 }

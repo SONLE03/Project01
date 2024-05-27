@@ -2,6 +2,7 @@ package com.clothing.warrantyservice.event;
 
 
 import com.clothing.warrantyservice.dto.response.OrderEventResponse;
+import com.clothing.warrantyservice.dto.response.WarrantyEventResponse;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
@@ -11,6 +12,6 @@ import lombok.*;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OrderEvent {
-    private OrderEventResponse order;
+public class WarrantyEvent {
+    private WarrantyEventResponse warrantyEventResponse;
 }

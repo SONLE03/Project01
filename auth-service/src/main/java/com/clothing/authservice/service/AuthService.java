@@ -19,7 +19,9 @@ import com.clothing.authservice.repository.UserRepository;
 import com.clothing.authservice.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,6 +40,8 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class AuthService {
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
@@ -46,7 +50,27 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final ForgotPasswordRepository forgotPasswordRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
-
+    private void saveTokenToRedis(UUID userId, String accessToken, String refreshToken){
+        redisTemplate.opsForHash().put("tokens:" + userId, "access_token", accessToken);
+        redisTemplate.opsForHash().put("tokens:" + userId, "refresh_token", refreshToken);
+        System.out.println(getValueFromRedis("tokens:" + userId, "access_token"));
+        System.out.println(getValueFromRedis("tokens:" + userId, "refresh_token"));
+    }
+    private void deleteTokensInRedis(UUID userId) {
+        redisTemplate.delete("tokens:" + userId);
+    }
+    private void updateAccessToken(UUID userId, String newAccessToken) {
+        if (redisTemplate.opsForHash().hasKey("tokens:" + userId, "access_token")) {
+            redisTemplate.opsForHash().put("tokens:" + userId, "access_token", newAccessToken);
+            System.out.println(getValueFromRedis("tokens:" + userId, "access_token"));
+            System.out.println(getValueFromRedis("tokens:" + userId, "refresh_token"));
+        } else {
+            throw new RuntimeException("Access token not found for user: " + userId);
+        }
+    }
+    private String getValueFromRedis(String key, String subKey) {
+        return (String) redisTemplate.opsForHash().get(key, subKey);
+    }
     public TokenResponse authenticate(SigninRequest signinRequest) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -62,8 +86,10 @@ public class AuthService {
 
     public TokenResponse generateToken(User user){
         RefreshToken refreshToken = jwtUtil.generateRefreshToken(user.getId());
+        String accessToken = jwtUtil.generate(user);
+        saveTokenToRedis(user.getId(), accessToken, refreshToken.getToken());
         return TokenResponse.builder()
-                .accessToken(jwtUtil.generate(user))
+                .accessToken(accessToken)
                 .refreshToken(refreshToken.getToken())
                 .build();
     }
@@ -82,13 +108,21 @@ public class AuthService {
     }
     @Transactional
     public TokenResponse refreshToken(String token){
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(
-                () -> new ObjectNotFoundException("Refresh token not found"));
-        refreshToken = jwtUtil.verifyExpiration(refreshToken);
-        return TokenResponse.builder()
-                .accessToken(jwtUtil.generate(refreshToken.getUser()))
-                .refreshToken(refreshToken.getToken())
-                .build();
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ObjectNotFoundException("Refresh token not found"));
+        UUID userId = refreshToken.getUser().getId();
+        try {
+            refreshToken = jwtUtil.verifyExpiration(refreshToken);
+            String accessToken = jwtUtil.generate(refreshToken.getUser());
+            updateAccessToken(userId, accessToken);
+            return TokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken.getToken())
+                    .build();
+        } catch (RuntimeException e) {
+            deleteTokensInRedis(userId);
+            throw e;
+        }
     }
 
     @Transactional
@@ -103,6 +137,7 @@ public class AuthService {
                         () -> new ObjectNotFoundException("User not found")).getId();
                 System.out.println(userId);
                 jwtUtil.deleteByUserId(userId);
+                deleteTokensInRedis(userId);
             }
         }
     }
@@ -147,4 +182,25 @@ public class AuthService {
         userRepository.updatePassword(email, passwordEncoder.encode(changePasswordRequest.getPassword()));
         return "Password has been changed!";
     }
+    private User getUserLogin(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof User) {
+            User currentUser = (User) principal;
+            return currentUser;
+        } else {
+            // Handle the case where the principal is not a User object (e.g., String, UserDetails, etc.)
+            return null; // or throw an exception, depending on your requirements
+        }
+    }
+    public UUID getIdLogin() {
+        var userLogin = getUserLogin();
+        if(userLogin == null) return null;
+        return userLogin.getId();
+    }
+
 }

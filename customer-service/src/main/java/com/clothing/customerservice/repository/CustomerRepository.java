@@ -11,6 +11,6 @@ import java.util.UUID;
 
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     Optional<Customer> findByPhone(String phone);
-    @Query("SELECT new com.clothing.customerservice.dto.response.CustomerResponse(c.id, c.fullName, c.phone) FROM Customer c")
+    @Query("SELECT new com.clothing.customerservice.dto.response.CustomerResponse(c.id, c.fullName, c.phone, c.email) FROM Customer c")
     List<CustomerResponse> getCustomer();
 }

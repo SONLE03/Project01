@@ -6,12 +6,14 @@ import com.clothing.OrderService.service.OrderService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,22 +39,27 @@ public class OrderController {
         return  orderService.getOrder(orderId);
     }
 
-    @PostMapping()
-    @ResponseStatus(HttpStatus.CREATED)
-    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
-    @TimeLimiter(name = "order-service")
-    @Retry(name = "order-service")
-    public CompletableFuture<String> createOrder(@RequestBody @Valid OrderRequest orderRequest) {
-        log.info("Create Order");
-        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest));
-    }
-    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest, RuntimeException runtimeException) {
-        log.info("Cannot Create Order Executing Fallback logic");
-        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
-    }
 //    @PostMapping()
 //    @ResponseStatus(HttpStatus.CREATED)
-//    public String createOrder(@RequestBody @Valid OrderRequest orderRequest){
-//        return orderService.createOrder(orderRequest);
+//    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
+//    @TimeLimiter(name = "order-service")
+//    @Retry(name = "order-service")
+//    public CompletableFuture<String> createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
+//        log.info("Create Order");
+//        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest, httpServletRequest));
 //    }
+//    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest,HttpServletRequest httpServletRequest, RuntimeException runtimeException) {
+//        log.info("Cannot Create Order Executing Fallback logic");
+//        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
+//    }
+//    @PostMapping()
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public String createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest){
+//        return orderService.createOrder(orderRequest, httpServletRequest);
+//    }
+@PostMapping
+@ResponseStatus(HttpStatus.CREATED)
+public String createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
+    return orderService.createOrder(orderRequest, httpServletRequest);
+}
 }

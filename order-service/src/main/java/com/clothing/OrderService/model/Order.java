@@ -26,8 +26,9 @@ public class Order {
     @Column(name = "id", nullable = false)
     private UUID id;
     private UUID customer;
-    @Column(name = "shipping_fee")
-    private BigDecimal shippingFee;
+    @Column(name = "paymentMethod")
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
     @Column(name = "total")
     private BigDecimal total;
     @Column(name = "note")
@@ -47,6 +48,8 @@ public class Order {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP default NOW()")
     @JsonFormat(timezone = "GMT+7")
     private Timestamp updatedAt;
+    @Column(name = "createdBy")
+    private UUID createdBy;
     @JsonIgnore
     @OneToMany(mappedBy = "order")
     Set<OrderItem> orderItems;

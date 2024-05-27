@@ -32,6 +32,8 @@ public class ProductEntity implements Serializable {
     private String description;
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+    @Column(name = "sold_quantity", nullable = false)
+    private Integer soldQuantity;
     @Column(name = "price", nullable = false)
     private BigDecimal price;
     @Column(name = "category_id", nullable = false)
@@ -48,4 +50,6 @@ public class ProductEntity implements Serializable {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP default NOW()")
     @JsonFormat(timezone = "GMT+7")
     private Timestamp updatedAt;
+    @Column(name = "createdBy")
+    private UUID createdBy;
 }

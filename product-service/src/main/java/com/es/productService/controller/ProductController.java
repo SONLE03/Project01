@@ -26,12 +26,16 @@ public class ProductController {
 
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
-    public List<ProductImageResponse> getAllProducts() {
+    public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();
     }
     @GetMapping("/product/{productId}")
     public ProductToOrder getProductToOrder(@PathVariable UUID productId){
         return productService.getProductToOrder(productId);
+    }
+    @GetMapping("/productItem/{productId}/{quantity}")
+    public List<UUID> getProductItem(@PathVariable UUID productId, @PathVariable Integer quantity){
+        return productService.getProductItem(productId, quantity);
     }
     @GetMapping("/{productId}")
     @ResponseStatus(HttpStatus.OK)

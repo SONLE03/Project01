@@ -25,5 +25,7 @@
         <module>inventory-service</module>
         <module>order-service</module>
         <module>mail-service</module>
+        <module>payment-service</module>
+        <module>warranty-service</module>
     </modules>
 </project>

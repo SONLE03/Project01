@@ -31,6 +31,7 @@ public class InventoryServiceImp implements InventoryService{
     private final ImportInvoiceRepository importInvoiceRepository;
     private final ImportItemRepository importItemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final AuthService authService;
     @Override
     public List<ImportInvoiceResponse> getImports() {
         return null;
@@ -50,6 +51,7 @@ public class InventoryServiceImp implements InventoryService{
             productSet.add(product.getId());
         }
         ImportInvoice importInvoice = new ImportInvoice();
+        importInvoice.setCreatedBy(authService.getIdLogin());
         importInvoice = importInvoiceRepository.save(importInvoice);
         BigDecimal total = BigDecimal.ZERO;
         List<ImportItem> importItems = new ArrayList<>();

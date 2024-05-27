@@ -33,7 +33,8 @@ public class ImportInvoice{
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP default NOW()")
     @JsonFormat(timezone = "GMT+7")
     private Timestamp updatedAt;
-
+    @Column(name = "createdBy")
+    private UUID createdBy;
     @JsonIgnore
     @OneToMany(mappedBy = "importInvoice")
     List<ImportItem> importItems = new ArrayList<>();;
