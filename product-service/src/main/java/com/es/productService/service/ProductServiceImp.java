@@ -44,14 +44,8 @@ public class ProductServiceImp implements ProductService{
 
     @Override
     public List<ProductResponse> getAllProducts() {
-//        List<ProductImageResponse> productImageResponses = new ArrayList<>();
         List<ProductResponse> productResponse = productRepository.findAllProducts();
         return productResponse;
-//        for (ProductResponse product : productResponse){
-//            List<ImageResponse> imageResponses = imageRepository.findImagesByProductId(product.getId());
-//            productImageResponses.add(new ProductImageResponse(product, imageResponses));
-//        }
-//        return productImageResponses;
     }
     @Override
     @Transactional
@@ -90,7 +84,7 @@ public class ProductServiceImp implements ProductService{
                 .product_Name(request.getProduct_Name())
                 .description(request.getDescription())
                 .price(request.getPrice())
-                .quantity(request.getQuantity())
+                .quantity(0)
                 .soldQuantity(0)
                 .category(categoryResponse.getId())
                 .warrantyPeriod(request.getWarrantyPeriod())
@@ -244,6 +238,7 @@ public class ProductServiceImp implements ProductService{
                         .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
                 List<UUID> productItemIdList = item.getProductItemList();
                 product.setSoldQuantity(product.getSoldQuantity() + productItemIdList.size());
+                product.setQuantity(product.getQuantity() - productItemIdList.size());
                 productsToUpdate.add(product);
                 productItemRepository.updateProductItemStatus(ProductItemStatus.SOLD, productItemIdList, ProductItemStatus.INSTOCK);
             }
@@ -267,6 +262,7 @@ public class ProductServiceImp implements ProductService{
                     .orElseThrow(() -> new BusinessException(APIStatus.PRODUCT_NOT_FOUND));
             List<UUID> productItemIdList = item.getProductItemList();
             product.setSoldQuantity(product.getSoldQuantity() - productItemIdList.size());
+            product.setQuantity(product.getQuantity() + productItemIdList.size());
             productsToUpdate.add(product);
             productItemRepository.updateProductItemStatus(ProductItemStatus.INSTOCK, productItemIdList, ProductItemStatus.SOLD);
         }

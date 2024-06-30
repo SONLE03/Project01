@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,28 +40,21 @@ public class OrderController {
     public Order getOrder(@PathVariable UUID orderId){
         return  orderService.getOrder(orderId);
     }
-
-//    @PostMapping()
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
-//    @TimeLimiter(name = "order-service")
-//    @Retry(name = "order-service")
-//    public CompletableFuture<String> createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
-//        log.info("Create Order");
-//        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest, httpServletRequest));
-//    }
-//    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest,HttpServletRequest httpServletRequest, RuntimeException runtimeException) {
-//        log.info("Cannot Create Order Executing Fallback logic");
-//        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
-//    }
-//    @PostMapping()
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public String createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest){
-//        return orderService.createOrder(orderRequest, httpServletRequest);
-//    }
-@PostMapping
-@ResponseStatus(HttpStatus.CREATED)
-public String createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
-    return orderService.createOrder(orderRequest, httpServletRequest);
-}
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @CircuitBreaker(name = "order-service", fallbackMethod = "fallbackMethod")
+    @TimeLimiter(name = "order-service")
+    @Retry(name = "order-service")
+    public CompletableFuture<UUID> createOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
+        log.info("Create Order");
+        return CompletableFuture.supplyAsync(() -> orderService.createOrder(orderRequest, httpServletRequest));
+    }
+    public CompletableFuture<String> fallbackMethod(OrderRequest orderRequest,HttpServletRequest httpServletRequest, RuntimeException runtimeException) {
+        log.info("Cannot Create Order Executing Fallback logic");
+        return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, create order after some time!");
+    }
+    @GetMapping(value = "/{orderId}/status", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> streamOrderStatus(@PathVariable UUID orderId) {
+        return orderService.getOrderStatus(orderId);
+    }
 }

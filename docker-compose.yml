@@ -215,6 +215,27 @@ services:
       timeout: 10s
     networks:
       - electronic-network
+  payment-service-mysql:
+    image: mysql:8.0.35
+    container_name: payment-service-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: lhs00000
+      MYSQL_DATABASE: payment_service
+      MYSQL_USER: payment_service
+      MYSQL_PASSWORD: lhs00000
+    hostname: payment-service-mysql
+    restart: unless-stopped
+    volumes:
+      - payment-service-mysql-data:/var/lib/mysql
+      - ./payment-service/src/main/resources/script:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "payment-service-mysql" ]
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - electronic-network
 # Zipkin
   zipkin:
     image: openzipkin/zipkin
@@ -414,18 +435,39 @@ services:
       - SPRING_APPLICATION_NAME=warranty-service
     networks:
       - electronic-network
+  payment-service:
+    container_name: payment-service
+    hostname: payment-service
+    restart: unless-stopped
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    depends_on:
+      - gateway-service
+      - eureka-server
+    ports:
+      - "9010:9010"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=payment-service
+    networks:
+      - electronic-network
   ## Prometheus
   prometheus:
-    image: prom/prometheus:v2.37.1
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile
     container_name: prometheus
     restart: always
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - electronic-network
   ## Grafana
   grafana:
-    image: grafana/grafana-oss:8.5.2
+    image: grafana/grafana-oss:11.0.0
     container_name: grafana
     restart: always
     ports:
@@ -437,6 +479,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=password
+    networks:
+      - electronic-network
 volumes:
   auth-service-mysql-data:
   customer-service-mysql-data:
@@ -446,7 +490,9 @@ volumes:
   product-service-mysql-data:
   category-service-mysql-data:
   warranty-service-mysql-data:
+  payment-service-mysql-data:
   redis-data:
+  prometheus-data:
 networks:
   electronic-network:
     driver: bridge

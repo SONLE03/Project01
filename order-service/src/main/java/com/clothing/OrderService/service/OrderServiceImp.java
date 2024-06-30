@@ -23,10 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -56,7 +58,7 @@ public class OrderServiceImp implements OrderService{
     }
     @Transactional
     @Override
-    public String createOrder(OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
+    public UUID createOrder(OrderRequest orderRequest, HttpServletRequest httpServletRequest) {
         // Danh sách sản phẩm cần mua
         List<OrderItemRequest> orderItemRequestList = orderRequest.getOrderItemRequestList();
         // Chi tiết hóa đơn
@@ -131,7 +133,8 @@ public class OrderServiceImp implements OrderService{
             paymentService.submitOrder(_total.intValue(), "Thanh toán hóa đơn bán hàng", httpServletRequest);
         }
         orderRepository.save(order);
-        return "Order was created successfully";
+//        return "Order was created successfully";
+        return order.getId();
     }
     private void saveEventToRedis(UUID orderId, SagaDTO sagaDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -175,11 +178,13 @@ public class OrderServiceImp implements OrderService{
         if(paymentResult.equals(paymentSuccess)){
             order.setOrderStatus(OrderStatus.PAID);
             order.setPaymentAt(time);
+            order.setUpdatedAt(time);
             SagaDTO sagaDTO = getEventFromRedis(orderId, new TypeReference<SagaDTO>() {}, "sagaDTO");
             applicationEventPublisher.publishEvent(new SagaEvent(this, sagaDTO));
         }else{
             order.setOrderStatus(OrderStatus.CANCELED);
             order.setCanceledAt(time);
+            order.setUpdatedAt(time);
         }
         deleteOrderInRedis(orderId);
         orderRepository.save(order);
@@ -193,6 +198,7 @@ public class OrderServiceImp implements OrderService{
                 () -> new BusinessException(APIStatus.ORDER_NOT_FOUND));
         order.setOrderStatus(OrderStatus.CANCELED);
         order.setCanceledAt(time);
+        order.setUpdatedAt(time);
         orderRepository.save(order);
         return "Order was not created successfully";
     }
@@ -204,7 +210,18 @@ public class OrderServiceImp implements OrderService{
                 () -> new BusinessException(APIStatus.ORDER_NOT_FOUND));
         order.setOrderStatus(OrderStatus.COMPLETED);
         order.setCompletedAt(time);
+        order.setUpdatedAt(time);
         orderRepository.save(order);
         return "Order was created successfully";
+    }
+
+    @Override
+    public Flux<String> getOrderStatus(UUID orderId) {
+        return Flux.interval(Duration.ofSeconds(1))
+                .map(tick -> orderRepository.findById(orderId)
+                        .map(order -> order.getOrderStatus().toString())
+                        .orElse("Order not found"))
+                .distinctUntilChanged()
+                .take(Duration.ofSeconds(3));
     }
 }

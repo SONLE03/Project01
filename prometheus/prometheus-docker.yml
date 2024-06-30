@@ -6,60 +6,60 @@ scrape_configs:
   - job_name: 'auth-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9001' ]
+      - targets: [ 'auth-service:9001' ]
         labels:
           application: 'Auth Service Application'
   - job_name: 'user-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9002' ]
+      - targets: [ 'user-service:9002' ]
         labels:
           application: 'User Service Application'
   - job_name: 'customer-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9003' ]
+      - targets: [ 'customer-service:9003' ]
         labels:
           application: 'Customer Service Application'
   - job_name: 'product-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['localhost:9004']
+      - targets: ['product-service:9004']
         labels:
           application: 'Product Service Application'
   - job_name: 'inventory-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9005' ]
+      - targets: [ 'inventory-service:9005' ]
         labels:
           application: 'Inventory Service Application'
   - job_name: 'order-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['localhost:9006']
+      - targets: ['order-service:9006']
         labels:
           application: 'Order Service Application'
   - job_name: 'mail-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9007' ]
+      - targets: [ 'mail-service:9007' ]
         labels:
           application: 'Mail Service Application'
   - job_name: 'category-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['localhost:9008']
+      - targets: ['category-service:9008']
         labels:
           application: 'Category Service Application'
   - job_name: 'warranty-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9009' ]
+      - targets: [ 'warranty-service:9009' ]
         labels:
           application: 'Warranty Service Application'
   - job_name: 'payment-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'localhost:9010' ]
+      - targets: [ 'payment-service:9010' ]
         labels:
           application: 'Payment Service Application'

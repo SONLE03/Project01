@@ -89,9 +89,6 @@ public class WarrantyServiceImp implements WarrantyService{
                     warrantyList.add(warranty);
                 }
             }
-            if(true){
-                throw new BusinessException(APIStatus.WARRANTY_EXPIRED);
-            }
             warrantyRepository.saveAll(warrantyList);
             applicationEventPublisher.publishEvent(new OrderSuccessEvent(this, orderEventResponse.getOrderId()));
             applicationEventPublisher.publishEvent(new MailEvent(this, orderEventResponse));
